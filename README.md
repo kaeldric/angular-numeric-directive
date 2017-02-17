@@ -36,3 +36,7 @@ This angular directive prevents the user from entering non-numeric values.
 **`decimals`**: number of decimals. Default 2.
 
 **`formatting`**: apply thousand separator formatting. Default true.
+
+**`symbol`**: apply a symbol before or after the number. Default undefined (no symbol).
+
+**`symbol-pos`**: sets the position of the symbol. Default 'right'.

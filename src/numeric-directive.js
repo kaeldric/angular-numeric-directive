@@ -1,12 +1,14 @@
 /**
  * Numeric directive.
- * Version: 0.9.8
+ * Version: 0.9.8-1
  * 
  * Numeric only input. Limits input to:
  * - max value: maximum input value. Default undefined (no max).
  * - min value: minimum input value. Default undefined (no min).
  * - decimals: number of decimals. Default 2.
  * - formatting: apply thousand separator formatting. Default true.
+ * - symbol: apply a symbol before or after the number. Default undefined (no symbol).
+ * - symbol-pos: sets the position of the symbol. Default 'right'.
  */
 (function () {
     'use strict';
@@ -20,7 +22,7 @@
 
     function numeric($locale) {
         // Usage:
-        //     <input type="text" decimals="3" min="-20" max="40" formatting="false" ></input>
+        //     <input type="text" decimals="3" min="-20" max="40" formatting="false" symbol="$" symbol-pos="left" ></input>
         // Creates:
         // 
         var directive = {
@@ -44,6 +46,8 @@
             var max;                            // Maximum value. Default undefined.
             var min;                            // Minimum value. Default undefined.
             var decimals = 2;                   // Number of decimals. Default 2.
+            var symbol;                         // Symbol value. Default: undefined.
+            var symbolPos = 'right';            // Symbol sign position. Default: 'right'
             var lastValidValue;                 // Last valid value.
 
             // Create parsers and formatters.
@@ -60,6 +64,8 @@
             scope.$watch(attrs.max, onMaxChanged);
             scope.$watch(attrs.decimals, onDecimalsChanged);
             scope.$watch(attrs.formatting, onFormattingChanged);
+            scope.$watch(attrs.symbol, onSymbolChanged);
+            scope.$watch(attrs.symbolPos, onSymbolPosChanged);
 
             // Setup decimal formatting.
             if (decimals > -1) {
@@ -67,7 +73,7 @@
                     return (value) ? round(value) : value;
                 });
                 ngModelCtrl.$formatters.push(function (value) {
-                    return (value) ? formatPrecision(value) : value;
+                    return formatPrecision(value);
                 });
             }
 
@@ -108,6 +114,25 @@
                     ngModelCtrl.$render();
                 }
             }
+            
+            function onSymbolChanged(value) {                
+                if (!angular.isUndefined(value)) {
+                    symbol = value;
+                    ngModelCtrl.$setViewValue(formatPrecision(lastValidValue));
+                    ngModelCtrl.$render();
+                }
+            }
+            
+            function onSymbolPosChanged(value) {
+                if (!angular.isUndefined(value)) {
+                    symbolPos = value.toLowerCase();
+                    if (symbolPos !== 'left' && symbolPos !== 'right') {
+                        symbolPos = 'right';
+                    }
+                    ngModelCtrl.$setViewValue(formatPrecision(lastValidValue));
+                    ngModelCtrl.$render();
+                }
+            }
 
             /**
              * Round the value to the closest decimal.
@@ -124,9 +149,24 @@
                 if (formatting) {
                     var parts = value.toString().split(decimalSeparator);
                     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, groupSeparator);
-                    return parts.join(decimalSeparator);
+                    var valueWithCommas = parts.join(decimalSeparator);
+                    return numberWithSymbol(valueWithCommas);
                 }
                 else {
+                    // No formatting applies.
+                    return value;
+                }
+            }
+
+            /**
+             * Format a number with the thousand group separator.
+             */
+            function numberWithSymbol(value) {
+                if (symbol && symbolPos === 'left') {
+                    return symbol + ' ' + value;
+                } else if (symbol && symbolPos === 'right') {
+                    return value + ' ' + symbol;
+                } else {
                     // No formatting applies.
                     return value;
                 }
@@ -136,9 +176,22 @@
              * Format a value with thousand group separator and correct decimal char.
              */
             function formatPrecision(value) {
-                if (!(value || value === 0)) {
-                    return '';
+                if (angular.isUndefined(value) || value === '') {
+                    // Checks if 0 is a valid value
+                    var minValidated = minValidator(0);
+                    var maxValidated = maxValidator(0);
+                    if (minValidated === maxValidated && minValidated === 0) {
+                        // 0 is a valid value.
+                        value = 0;
+                    } else if (maxValidated < 0 && angular.isUndefined(min)) {
+                        // 0 is above the max value, but there's no minimum, so uses the max
+                        value = maxValidated;
+                    } else {
+                        // Default: uses the min
+                        value = minValidated;
+                    }
                 }
+                
                 var formattedValue = parseFloat(value).toFixed(decimals);
                 formattedValue = formattedValue.replace('.', decimalSeparator);
                 return numberWithCommas(formattedValue);
@@ -282,3 +335,4 @@
     }
 
 })();
+

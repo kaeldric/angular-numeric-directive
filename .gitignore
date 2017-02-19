@@ -44,3 +44,4 @@ Temporary Items
 
 test/coverage/
 src/*.html
+/nbproject/private/

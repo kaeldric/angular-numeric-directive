@@ -246,7 +246,7 @@
                     }
                     else {
                         // Render the last valid input in the field
-                        ngModelCtrl.$setViewValue(formatViewValue(lastValidValue));
+                        ngModelCtrl.$setViewValue(formatPrecision(lastValidValue));
                         ngModelCtrl.$render();
                     }
                 }

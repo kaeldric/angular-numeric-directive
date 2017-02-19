@@ -34,6 +34,8 @@
 
 
         function link(scope, el, attrs, ngModelCtrl) {
+            el.addClass('numeric'); // Adds the 'numeric' class to all elements for common style
+            
             var decimalSeparator = $locale.NUMBER_FORMATS.DECIMAL_SEP;
             var groupSeparator = $locale.NUMBER_FORMATS.GROUP_SEP;
 

@@ -58,8 +58,9 @@
             ngModelCtrl.$parsers.push(maxValidator);
             ngModelCtrl.$formatters.push(formatViewValue);
 
-            el.bind('blur', onBlur);        // Event handler for the leave event.
-            el.bind('focus', onFocus);      // Event handler for the focus event.
+            el.bind('blur', onBlur);                // Event handler for the leave event.
+            el.bind('focus', onFocus);              // Event handler for the focus event.
+            el.bind('keydown keypress', onKey);     // Event handler for the keydown/keypress events.
 
             // Put a watch on the min, max and decimal value changes in the attribute.
             scope.$watch(attrs.min, onMinChanged);
@@ -318,6 +319,22 @@
                     // Format the model value.
                     ngModelCtrl.$viewValue = formatPrecision(value);
                     ngModelCtrl.$render();
+                }
+            }
+
+
+            /**
+             * Function for handeling the keydown/keypress events on the control.
+             * scanning for an enter key
+             */
+            function onKey(event) {
+                if (event.which === 13) {
+                    var value = ngModelCtrl.$modelValue;
+                    if (!angular.isUndefined(value)) {
+                        // Format the model value.
+                        ngModelCtrl.$viewValue = formatPrecision(value);
+                        ngModelCtrl.$render();
+                    }
                 }
             }
 
